@@ -96,6 +96,8 @@ Tämä projekti on yksinkertainen online-visailupeli, joka on toteutettu Node.js
   - **Multikäyttäjätuki** Useita Admin käyttäjiä, joilla omat kysymyssarjat.
   - **Kysymyssarjapankki** Kysymyssarjojen jakomahdollisuus.
   - **Admin-käyttäjä** Kuvaavampi nimi käyttäjälle.
+  - **Mukautetut ilmoitukset** Ilmoitukset perusnäköisistä ilmoituksista (alert("")) mukautetuksi.
+  - **Lisäkieli Tuki** Lisää enemmän kieliä Peliin / Käyttöliittymään jotta kaikki ymmärtävät peliä.
        
 ## Lisäresurssit ja linkit  
   - [Socket.io dokumentaatio](https://socket.io/docs/v4)
