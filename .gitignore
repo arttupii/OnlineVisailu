@@ -1,0 +1,11 @@
+# .gitignore
+
+# Node modules ja riippuvuudet
+node_modules/
+
+.vscode/
+
+# Muut ei-toivotut tiedostot
+npm-debug.log*
+yarn-error.log
+

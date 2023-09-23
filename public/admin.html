@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Hallitse peliä</title>
+	
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+	<style>
+		body {
+			background-color: #007BFF; /* Bootstrapin pääsininen väri */
+		}
+	</style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+	<div class="container mt-5">
+		<div class="row justify-content-center">
+			<div class="col-lg-8">
+				<div class="card">
+					<div class="card-header text-center bg-primary text-white">
+						Admin Paneeli
+					</div>
+					<div class="card-body">
+
+						<!-- Luo uusi peli -->
+						<div class="mb-3">
+							<h2>Luo uusi peli:</h2>
+							<button onclick="createNewGame()" class="btn btn-success mb-2">Luo peli</button>
+							<div id="gameCode" class="alert alert-info">Liittymiskoodi: Ei vielä luotu</div>
+						</div>
+
+						<!-- Valitse kysymyssarja -->
+						<div class="mb-3">
+							<h2>Valitse kysymyssarja:</h2>
+							<div class="input-group">
+								<select id="seriesSelector" class="form-select"></select>
+								<button onclick="startSelectedSeries()" class="btn btn-primary">Aloita valittu sarja</button>
+							</div>
+						</div>
+
+						<!-- Meneillään oleva kysymys -->
+						<h3 class="text-center mt-4">Meneillään oleva kysymys:</h3>
+						<div id="currentQuestion" class="text-center alert alert-secondary">Odota kysymystä...</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io.connect('http://localhost:3000');
+		let currentGameId = null; // Muuttuja pelikoodille
+
+        function createNewGame() {
+			socket.emit('createGame', {}, (gameId) => {
+				currentGameId = gameId; // Tallenna pelikoodi
+				document.getElementById('gameCode').innerText = `Liittymiskoodi: ${gameId}`;
+			});
+		}
+
+        function startSelectedSeries() {
+			if (!currentGameId) {
+				alert("Sinun täytyy ensin luoda peli!");
+				return;
+			}
+
+			const seriesName = document.getElementById('seriesSelector').value;
+			socket.emit('startGame', { gameId: currentGameId, seriesName: seriesName });
+		}
+
+        // Lataa kysymyssarjat heti, kun sivu latautuu
+        fetch('/questions')
+            .then(response => response.json())
+            .then(allQuestions => {
+                const seriesSelector = document.getElementById('seriesSelector');
+                allQuestions.forEach(series => {
+                    const option = document.createElement('option');
+                    option.value = series.name;
+                    option.innerText = series.name;
+                    seriesSelector.appendChild(option);
+                });
+            });
+		
+		socket.on('newQuestion', (question) => {
+			console.log(question);
+			
+			const questionDiv = document.getElementById('currentQuestion');
+			questionDiv.innerHTML = `
+				Kysymys: ${question.question} <br>
+				Vaihtoehdot: ${question.options.join(', ')}
+			`;
+		});
+		
+	socket.on('gameOver', (data) => {
+		alert('Peli on päättynyt!');
+		console.info(data);
+		data.forEach(player => {
+			const result = document.createElement('div');
+			result.innerText = `${player.nickname}: ${player.score} pistettä`;
+			document.body.appendChild(result);
+		});
+	});
+    </script>
+	
+
+</body>
+</html>

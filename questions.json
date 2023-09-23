@@ -1,0 +1,47 @@
+[
+    {
+        "name": "Kysymyksiä suomesta",
+        "questions": [
+            {
+                "id": 1,
+                "question": "Mikä on maailman korkein vuori?",
+                "options": ["Everest", "Kilimanjaro", "Denali", "Aconcagua"],
+                "correctAnswer": "Everest",
+                "duration": 3
+            },
+            {
+                "id": 2,
+                "question": "Minkä väriset ovat Suomen lipun värit?",
+                "options": ["TRUE"],["FALSE"]
+                "correctAnswer": "TRUE",
+                "duration": 3
+            },
+			{
+                "id": 3,
+                "question": "Paljon on 1 + 2?",
+                "options": ["3"],["12"]
+                "correctAnswer": "3",
+                "duration": 3
+            }
+        ]
+    },
+	    {
+        "name": "Kysymyksiä suomesta2",
+        "questions": [
+            {
+                "id": 1,
+                "question": "Mikä on maailman korkein vuori2?",
+                "options": ["Everest", "Kilimanjaro", "Denali", "Aconcagua"],
+                "correctAnswer": "Everest",
+                "duration": 3
+            },
+            {
+                "id": 2,
+                "question": "Minkä väriset ovat Suomen lipun värit2?",
+                "options": ["Sininen ja valkoinen", "Punainen ja valkoinen", "Vihreä ja keltainen", "Musta ja keltainen"],
+                "correctAnswer": "Sininen ja valkoinen",
+                "duration": 3
+            }
+        ]
+    }
+]
