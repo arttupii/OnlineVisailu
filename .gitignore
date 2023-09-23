@@ -2,6 +2,7 @@
 
 # Node modules ja riippuvuudet
 node_modules/
+package-lock.json
 
 .vscode/
 

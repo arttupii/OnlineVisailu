@@ -12,14 +12,14 @@
             {
                 "id": 2,
                 "question": "Minkä väriset ovat Suomen lipun värit?",
-                "options": ["TRUE"],["FALSE"]
+                "options": ["TRUE","FALSE"],
                 "correctAnswer": "TRUE",
                 "duration": 3
             },
 			{
                 "id": 3,
                 "question": "Paljon on 1 + 2?",
-                "options": ["3"],["12"]
+                "options": ["3","12"],
                 "correctAnswer": "3",
                 "duration": 3
             }
