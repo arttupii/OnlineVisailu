@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Pelaaja - Visailu</title>
+	<meta charset="UTF-8">
+	<title>Pelaaja - Visailu</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 	<style>
 		body {
-			background-color: #007BFF; /* Bootstrapin pääsininen väri */
+			background-color: #007BFF;
+			/* Bootstrapin pääsininen väri */
 		}
 	</style>
 
 </head>
-<body>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-	
+<body>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 	<div class="container mt-5">
 		<div class="row justify-content-center">
 			<div class="col-lg-6">
@@ -23,7 +25,9 @@
 					<div class="card-body">
 						<h1 class="card-title text-center">Tervetuloa peliin!</h1>
 						<h2 id="questionText" class="text-center">Odota kysymystä...</h2>
-						<div id="timer" class="text-center mb-3">Aikaa jäljellä: <span id="remainingTime">0</span> sekuntia</div>
+						<div id="timer" class="text-center mb-3">
+							Aikaa jäljellä: <span id="remainingTime">0</span> sekuntia
+						</div>
 
 						<div id="options" class="d-grid gap-2">
 							<!-- Kysymyksen vaihtoehdot tulevat tähän -->
@@ -33,10 +37,10 @@
 			</div>
 		</div>
 	</div>
-    
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		const urlParams = new URLSearchParams(window.location.search);
 		const nickname = urlParams.get('nickname');
 		const gameId = urlParams.get('gameId');
 
@@ -63,8 +67,10 @@
 
 			const optionsDiv = document.getElementById('options');
 			optionsDiv.innerHTML = '';  // Tyhjennä edelliset vaihtoehdot
-			
-			question.options.forEach(option => {
+
+			// Sekoita vaihtoehdot
+			const randomizedOptions = mixArray(question.options, 5)
+			randomizedOptions.forEach(option => {
 				const btn = document.createElement('button');
 				btn.innerText = option;
 				btn.onclick = () => answerQuestion(option, btn, question.correctAnswer);
@@ -84,7 +90,7 @@
 			timerInterval = setInterval(() => {
 				remainingTime -= 1;
 				document.getElementById('remainingTime').innerText = remainingTime;
-				
+
 				if (remainingTime <= 0) {
 					clearInterval(timerInterval);
 					// Voit myös poistaa kysymyksen ja vaihtoehdot, kun aika loppuu
@@ -92,22 +98,22 @@
 				}
 			}, 1000);
 		});
-		
+
 		socket.on('gameOver', (data) => {
-				alert(`Peli on päättynyt! Sait ${data.score} pistettä.`);
-				
-				/*// Näytetään oikeat vastaukset
-				data.questions.forEach((question, index) => {
-					const playerAnswer = player.answers[index];
-					const correctAnswer = question.correctAnswer;
-					const result = document.createElement('div');
-					result.innerHTML = `
-						Kysymys: ${question.question} <br>
-						Oikea vastaus: ${correctAnswer} <br>
-						Sinun vastauksesi: ${playerAnswer} ${playerAnswer === correctAnswer ? '(Oikein)' : '(Väärin)'}
-					`;
-					document.body.appendChild(result);
-				});*/
+			alert(`Peli on päättynyt! Sait ${data.score} pistettä.`);
+
+			/*// Näytetään oikeat vastaukset
+			data.questions.forEach((question, index) => {
+				const playerAnswer = player.answers[index];
+				const correctAnswer = question.correctAnswer;
+				const result = document.createElement('div');
+				result.innerHTML = `
+					Kysymys: ${question.question} <br>
+					Oikea vastaus: ${correctAnswer} <br>
+					Sinun vastauksesi: ${playerAnswer} ${playerAnswer === correctAnswer ? '(Oikein)' : '(Väärin)'}
+				`;
+				document.body.appendChild(result);
+			});*/
 			//}
 		});
 
@@ -128,24 +134,24 @@
 			socket.emit('answer', { gameId: gameId, option: selectedOption });
 		}
 
-        function displayQuestion(question) {
-            const questionText = document.getElementById('questionText');
-            const answerOptions = document.getElementById('answerOptions');
+		function displayQuestion(question) {
+			const questionText = document.getElementById('questionText');
+			const answerOptions = document.getElementById('answerOptions');
 
-            questionText.innerText = question.question;
-            answerOptions.innerHTML = ''; // Tyhjennä aiemmat vastausvaihtoehdot
+			questionText.innerText = question.question;
+			answerOptions.innerHTML = ''; // Tyhjennä aiemmat vastausvaihtoehdot
 
-            question.options.forEach(option => {
-                const li = document.createElement('li');
-                li.innerText = option;
-                li.onclick = () => submitAnswer(option); // Kun vastausvaihtoehtoa klikataan, lähetä vastaus palvelimelle
-                answerOptions.appendChild(li);
-            });
-        }
+			question.options.forEach(option => {
+				const li = document.createElement('li');
+				li.innerText = option;
+				li.onclick = () => submitAnswer(option); // Kun vastausvaihtoehtoa klikataan, lähetä vastaus palvelimelle
+				answerOptions.appendChild(li);
+			});
+		}
 
-        function submitAnswer(answer) {
-            socket.emit('submitAnswer', { answer: answer, gameId: 'gameIdHere' }); // Tämä 'gameIdHere' pitäisi korvata todellisella pelitunnuksella
-        }
+		function submitAnswer(answer) {
+			socket.emit('submitAnswer', { answer: answer, gameId: 'gameIdHere' }); // Tämä 'gameIdHere' pitäisi korvata todellisella pelitunnuksella
+		}
 
 		function joinGame() {
 			const gameCode = document.getElementById('gameCodeInput').value;
@@ -157,20 +163,28 @@
 			socket.emit('joinGame', { gameId: gameCode });
 		}
 
-        socket.on('gameStarted', () => {
-            fetch('/questions')
-                .then(response => response.json())
-                .then(questions => {
-                    if (questions.length > 0) {
-                        displayQuestion(questions[0]); // Näytä ensimmäinen kysymys
-                    }
-                });
-        });
-    </script>
-	
+		socket.on('gameStarted', () => {
+			fetch('/questions')
+				.then(response => response.json())
+				.then(questions => {
+					if (questions.length > 0) {
+						displayQuestion(questions[0]); // Näytä ensimmäinen kysymys
+					}
+				});
+		});
 
+		function mixArray(array, times) {
+			let mixxedArray = [...array];
 
+			for (let i = 0; i < times; i++) {
+				for (let j = mixxedArray.length - 1; j > 0; j--) {
+					const randomIndex = Math.floor(Math.random() * (j + 1));
+					[mixxedArray[j], mixxedArray[randomIndex]] = [mixxedArray[randomIndex], mixxedArray[j]];
+				}
+			}
 
-	
+			return mixxedArray;
+		}
+	</script>
 </body>
 </html>
