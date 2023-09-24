@@ -98,6 +98,11 @@ Tämä projekti on yksinkertainen online-visailupeli, joka on toteutettu Node.js
   - **Admin-käyttäjä** Kuvaavampi nimi käyttäjälle.
   - **Mukautetut ilmoitukset** Ilmoitukset perusnäköisistä ilmoituksista (alert("")) mukautetuksi.
   - **Lisäkieli Tuki** Lisää enemmän kieliä Peliin / Käyttöliittymään jotta kaikki ymmärtävät peliä.
+  - **Kysymyskategoriat** Kysymykset on jaettu eri kategorioihin
+  - **Kysymysten jakaminen** Kysymyssarjat voivat olla avoimia kaikille tai yksityisiä. (public/private)
+  - **Lisenssin määrittäminen** Lisää lisenssitiedot. MIT?
+  - **Animointi** Aikalaskuri on palkki
+    
        
 ## Lisäresurssit ja linkit  
   - [Socket.io dokumentaatio](https://socket.io/docs/v4)
