@@ -1,6 +1,10 @@
 # Online-visailupeli
 Tämä projekti on yksinkertainen online-visailupeli, joka on toteutettu Node.js:n ja Socket.io:n avulla.
 
+![alt text](https://raw.githubusercontent.com/arttupii/OnlineVisailu/main/pictures/new_game.png)
+![alt text](https://raw.githubusercontent.com/arttupii/OnlineVisailu/main/pictures/join.png)
+![alt text](https://raw.githubusercontent.com/arttupii/OnlineVisailu/main/pictures/game.png)
+
 ## Sisällysluettelo
   - [Käytetyt teknologiat ja riippuvuudet](#käytetyt-teknologiat-ja-riippuvuudet)
   - [Projektin rakenne](#projektin-rakenne)
