@@ -1,5 +1,5 @@
 {
-  "name": "Visailupeli",
+  "name": "visailupeli",
   "version": "1.0.0",
   "description": "Online Visailupeli",
   "main": "server.js",
@@ -10,6 +10,21 @@
     "express": "^4.17.1",
     "socket.io": "^4.4.0"
   },
-  "author": "",
-  "license": ""
+  "author": "arttupii",
+  "keywords": [
+    "visailu",
+    "peli",
+    "online",
+    "socket.io",
+    "node.js",
+    "express"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arttupii/OnlineVisailu.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arttupii/OnlineVisailu/issues"
+  },
+  "homepage": "https://github.com/arttupii/OnlineVisailu#readme"
 }
