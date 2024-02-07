@@ -138,17 +138,21 @@
 			}
 
 			const resultDiv = document.querySelector('[data-type="Lopputulokset"]');
-			resultDiv.innerHTML = '';
-			resultDiv.style.display = 'block';
-
+			resultDiv.innerHTML = '<h3 class="text-center mt-4">Lopputulokset:</h3>';
+			const resultsList = document.createElement('div');
+			resultsList.className = 'text-center alert alert-secondary';
 
 			data.forEach(player => {
 				/* 			const result = document.createElement('div');
 							result.innerText = `${player.nickname}: ${player.score} pistettä`;
 							document.body.appendChild(result); */
-				resultDiv.innerHTML += `${player.nickname}: ${player.score} pistettä <br>`;
+				resultsList.innerHTML += `<div>${player.nickname}: ${player.score} pistettä </div>`;
 			});
+
+			resultDiv.appendChild(resultsList);
+			resultDiv.style.display = 'block';
 		});
+
 	setInterval(function() {
 		fetch('/getUsers', {
 			method: "POST",
