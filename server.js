@@ -8,6 +8,10 @@ const server = http.createServer(app);
 const io = socketIo(server);
 
 app.use(express.static('public'));
+app.use(express.urlencoded({
+	extended: true
+}));
+app.use(express.json());
 
 let games = {
 	// Esimerkki pelistä:
@@ -154,6 +158,13 @@ app.get('/questions', (req, res) => {
 });
 app.get('/player', (req, res) => {
 	res.sendFile(__dirname + '/public/player.html');
+});
+app.post('/getUsers', (req, res) => {
+	console.log("Pyyntö saatu.");
+	console.log(req.body);
+	res.send(games[req.body.gameId].players);
+	console.log(games);
+	console.log(req.body.gameId);
 });
 app.get('/', (req, res) => {
 	res.send('Kahoot-tyylinen peli Node.js:llä!');

@@ -50,6 +50,12 @@
 							<div id="currentQuestion" class="text-center alert alert-secondary">Odota kysymystä...</div>
 						</div>
 
+						<!-- Pelaajalistaus -->
+						<div data-type="pelinpelaajat">
+							<h3 class="text-center mt-4">Pelaajat: </h3>
+							<div id="playersId" class="text-center alert alert-secondary">Ei pelaajia</div>
+						</div>
+						
 						<!-- Lopputulokset -->
 						<div data-type="Lopputulokset" style="display: none;">
 							<h3 class="text-center mt-4">Lopputulokset:</h3>
@@ -143,6 +149,27 @@
 				resultDiv.innerHTML += `${player.nickname}: ${player.score} pistettä <br>`;
 			});
 		});
+	setInterval(function() {
+		fetch('/getUsers', {
+			method: "POST",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify({
+				gameId: currentGameId
+			})
+		})
+			.then(function (response) {
+				return response.json();
+			})
+			.then(function (resp) {
+				console.log("vastaus saatu");
+				playerText = document.getElementById("playersId");
+				const playersWithNames = resp.filter(player => player.nickname);
+            	const playerNames = playersWithNames.map(player => player.nickname).join('\n');
+            	const playerCount = playersWithNames.length;
+
+            playerText.innerText = `Pelaajat (${playerCount} kpl):\n${playerNames}`;
+			});
+		}, 3000);
 	</script>
 </body>
 </html>
