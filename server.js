@@ -130,14 +130,14 @@ function endGame(gameId) {
 			if (player.score === -1) {
 				//admin tai pelin luoja
 
-				io.to(player.socketId).emit('gameOver', game.players.map(function (p) {
+				io.to(player.socketId).emit('gameOver', game.players.filter(function (p) {
 					return p.score > -1;
 				}).map(function (p) {
 					return { nickname: p.nickname, score: p.score };
 				}));
 			} else {
 				//pelaajalle omat pisteet
-				io.to(player.socketId).emit('gameOver', [{ nickname: player.nickname, score: player.score }]);
+				io.to(player.socketId).emit('gameOver', { score: player.score });
 			}
 		});
 	}
