@@ -137,7 +137,7 @@ function endGame(gameId) {
 				}));
 			} else {
 				//pelaajalle omat pisteet
-				io.to(player.socketId).emit('gameOver', { score: player.score });
+				io.to(player.socketId).emit('gameOver', [{ nickname: player.nickname, score: player.score }]);
 			}
 		});
 	}
