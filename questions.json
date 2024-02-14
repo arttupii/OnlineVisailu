@@ -37,11 +37,11 @@
         ]
     },
     {
-        "name": "Kysymyksiä suomesta2",
+        "name": "Testikysymykset",
         "questions": [
             {
                 "id": 1,
-                "question": "Mikä on maailman korkein vuori2?",
+                "question": "Mikä on maailman korkein vuori?",
                 "options": [
                     "Everest",
                     "Kilimanjaro",
@@ -49,19 +49,18 @@
                     "Aconcagua"
                 ],
                 "correctAnswer": "Everest",
-                "duration": 3
+                "duration": 10
             },
             {
                 "id": 2,
-                "question": "Minkä väriset ovat Suomen lipun värit2?",
+                "question": "Minkä väriset ovat Suomen lipun värit?",
                 "options": [
                     "Sininen ja valkoinen",
                     "Punainen ja valkoinen",
-                    "Vihreä ja keltainen",
-                    "Musta ja keltainen"
+                    "Vihreä ja keltainen"
                 ],
                 "correctAnswer": "Sininen ja valkoinen",
-                "duration": 3
+                "duration": 10
             }
         ]
     }

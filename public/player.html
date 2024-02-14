@@ -23,12 +23,15 @@
 			<div class="col-lg-6">
 				<div class="card">
 					<div class="card-body">
-						<h1 class="card-title text-center">Tervetuloa peliin!</h1>
+						<h1 id="title" class="card-title text-center">Tervetuloa peliin!</h1>
 						<h2 id="questionText" class="text-center">Odota kysymystä...</h2>
-						<div id="timer" class="text-center mb-3">
-							Aikaa jäljellä: <span id="remainingTime">0</span> sekuntia
-						</div>
-
+						<div class="row">
+							<div class="col text-left">
+								<div id="playerScore" class="text-center mb-3">Pistemäärä: 0</div>
+							</div>
+							<div class="col text-right">
+								<div id="timer" class="text-center mb-3">Aikaa jäljellä: <span id="remainingTime">0</span> sekuntia</div>
+							</div>
 						<div id="options" class="d-grid gap-2">
 							<!-- Kysymyksen vaihtoehdot tulevat tähän -->
 						</div>
@@ -64,6 +67,8 @@
 
 		socket.on('newQuestion', (question) => {
 			document.getElementById('questionText').innerText = question.question;
+			// Poistaa 'Tervetuloa peliin!' tekstin pelin ajaksi.
+			document.getElementById('title').innerText = ''
 
 			const optionsDiv = document.getElementById('options');
 			optionsDiv.innerHTML = '';  // Tyhjennä edelliset vaihtoehdot
@@ -99,22 +104,30 @@
 			}, 1000);
 		});
 
-		socket.on('gameOver', (data) => {
-			alert(`Peli on päättynyt! Sait ${data.score} pistettä.`);
+		// Päivittää pelaajalle näkyvän pistemäärän joka kerta kun pelaaja vastaa kysymykseen.
+		socket.on('scoreUpdated', (player) => {
+			playerScore = document.getElementById('playerScore');
+			playerScore.innerText = `Pistemäärä: ${player.score}`;
+		})
 
-			/*// Näytetään oikeat vastaukset
-			data.questions.forEach((question, index) => {
-				const playerAnswer = player.answers[index];
-				const correctAnswer = question.correctAnswer;
-				const result = document.createElement('div');
-				result.innerHTML = `
-					Kysymys: ${question.question} <br>
-					Oikea vastaus: ${correctAnswer} <br>
-					Sinun vastauksesi: ${playerAnswer} ${playerAnswer === correctAnswer ? '(Oikein)' : '(Väärin)'}
-				`;
-				document.body.appendChild(result);
-			});*/
-			//}
+		// Pelin loputtua pelaajille näytetään pistetaulukko
+		socket.on('gameOver', (data) => {
+			const scoreboard = document.getElementById('options');
+			scoreboard.innerHTML = '';  // Tyhjennä alue
+			scoreboard.className = "d-flex justify-content-center"
+			
+			// Poista pistemäärä, ajastin sekä kysymys näkymästä ja laita pistetaulukko niiden paikalle
+			document.getElementById('playerScore').innerText = '';
+			document.getElementById('timer').innerText = '';
+			document.getElementById('questionText').innerText = '';
+			document.getElementById('title').innerText = 'Pistetaulukko';
+
+			data.forEach(player => {
+				const score = document.createElement('score');
+				score.innerText = `${player.nickname}: ${player.score}`;
+				scoreboard.appendChild(score);
+			})
+
 		});
 
 		function answerQuestion(selectedOption, btnElement, correctAnswer) {

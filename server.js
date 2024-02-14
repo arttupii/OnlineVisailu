@@ -96,7 +96,7 @@ io.on('connection', (socket) => {
 
 				if (data.option === currentQuestion.correctAnswer) {
 					player.score += 1;
-
+					io.to(socket.id).emit('scoreUpdated', {score: player.score})
 				}
 				console.log("Player score, nickname:%, score:%s", player.nickname, player.score);
 				//player.answers.push(data.option);
@@ -124,22 +124,11 @@ function sendQuestion(gameId, seriesQuestions, questionIndex) {
 
 // Kun peli päättyy...
 function endGame(gameId) {
-	const game = games[gameId];
+	const game = games[gameId]
 	if (game) {
-		game.players.forEach(player => {
-			if (player.score === -1) {
-				//admin tai pelin luoja
+		const scoreboard = game.players.filter(player => player.score != -1)
 
-				io.to(player.socketId).emit('gameOver', game.players.filter(function (p) {
-					return p.score > -1;
-				}).map(function (p) {
-					return { nickname: p.nickname, score: p.score };
-				}));
-			} else {
-				//pelaajalle omat pisteet
-				io.to(player.socketId).emit('gameOver', [{ nickname: player.nickname, score: player.score }]);
-			}
-		});
+		io.to(gameId).emit('gameOver', scoreboard)
 	}
 }
 
