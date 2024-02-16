@@ -98,8 +98,6 @@
 
 				if (remainingTime <= 0) {
 					clearInterval(timerInterval);
-					// Voit myös poistaa kysymyksen ja vaihtoehdot, kun aika loppuu
-					// esim. optionsDiv.innerHTML = '';
 				}
 			}, 1000);
 		});
@@ -114,7 +112,6 @@
 		socket.on('gameOver', (data) => {
 			const scoreboard = document.getElementById('options');
 			scoreboard.innerHTML = '';  // Tyhjennä alue
-			scoreboard.className = "d-flex justify-content-center"
 			
 			// Poista pistemäärä, ajastin sekä kysymys näkymästä ja laita pistetaulukko niiden paikalle
 			document.getElementById('playerScore').innerText = '';
@@ -122,12 +119,21 @@
 			document.getElementById('questionText').innerText = '';
 			document.getElementById('title').innerText = 'Pistetaulukko';
 
+			const scoreboardOrder = [];
 			data.forEach(player => {
-				const score = document.createElement('score');
-				score.innerText = `${player.nickname}: ${player.score}`;
-				scoreboard.appendChild(score);
+				scoreboardOrder.push(player);
 			})
 
+			scoreboardOrder.sort((a, b) => {
+				return b.score - a.score;
+			})
+
+			scoreboardOrder.forEach(player => {
+				const score = document.createElement('div');
+				score.innerHTML = `${player.nickname}: ${player.score}`;
+				score.style.textAlign = 'center';
+				scoreboard.appendChild(score);
+			})
 		});
 
 		function answerQuestion(selectedOption, btnElement, correctAnswer) {
