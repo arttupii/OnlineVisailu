@@ -1,0 +1,53 @@
+/* Style Sheets for player.html*/
+
+body {
+    background-color: #007BFF;
+    /* Bootstrapin pääsininen väri */
+}
+
+#timer.game-over,
+#playerScore.game-over {
+    display: none;
+}
+
+.centered-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+#playerScore {
+    background-color: #e1f5fe;
+    width: 15em;
+    border-radius: 1.8em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7em 1.8em;
+    margin-top: 1.20em;
+    margin-bottom: 1.20em;
+    font-weight: 600;
+}
+#timer {
+    background-color: #e1f5fe;
+    width: 15em;
+    border-radius: 1.8em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7em 1.8em;
+    margin-top: 1.20em;
+    margin-bottom: 1.20em;
+    font-weight: 600;
+    margin-left: 1.5em;
+}
+
+hr.my-3 {
+    margin-bottom: 1.8em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.6em;
+    border-bottom: 0.1em solid #c0bfd2
+}

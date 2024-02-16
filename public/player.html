@@ -5,14 +5,7 @@
 	<meta charset="UTF-8">
 	<title>Pelaaja - Visailu</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-	<style>
-		body {
-			background-color: #007BFF;
-			/* Bootstrapin pääsininen väri */
-		}
-	</style>
-
+	<link rel="stylesheet" href="playerStyleSheet.css">
 </head>
 
 <body>
@@ -25,13 +18,11 @@
 					<div class="card-body">
 						<h1 id="title" class="card-title text-center">Tervetuloa peliin!</h1>
 						<h2 id="questionText" class="text-center">Odota kysymystä...</h2>
-						<div class="row">
-							<div class="col text-left">
+							<div class="d-flex justify-content-center mb-3">
 								<div id="playerScore" class="text-center mb-3">Pistemäärä: 0</div>
+								<div id="timer" class="text-center mb-3">Aikaa jäljellä: <span id="remainingTime">0</span> sekuntia </div>
 							</div>
-							<div class="col text-right">
-								<div id="timer" class="text-center mb-3">Aikaa jäljellä: <span id="remainingTime">0</span> sekuntia</div>
-							</div>
+						<hr class="my-3">
 						<div id="options" class="d-grid gap-2">
 							<!-- Kysymyksen vaihtoehdot tulevat tähän -->
 						</div>
@@ -117,8 +108,8 @@
 			scoreboard.className = "d-flex justify-content-center"
 			
 			// Poista pistemäärä, ajastin sekä kysymys näkymästä ja laita pistetaulukko niiden paikalle
-			document.getElementById('playerScore').innerText = '';
-			document.getElementById('timer').innerText = '';
+			document.getElementById('playerScore').classList.add('game-over');
+			document.getElementById('timer').classList.add('game-over');
 			document.getElementById('questionText').innerText = '';
 			document.getElementById('title').innerText = 'Pistetaulukko';
 
