@@ -57,7 +57,8 @@
                 "options": [
                     "Sininen ja valkoinen",
                     "Punainen ja valkoinen",
-                    "Vihreä ja keltainen"
+                    "Vihreä ja keltainen",
+                    "Keltainen ja musta"
                 ],
                 "correctAnswer": "Sininen ja valkoinen",
                 "duration": 10

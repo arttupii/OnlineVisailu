@@ -136,6 +136,30 @@ app.get('/admin', (req, res) => {
 	res.sendFile(__dirname + '/public/admin.html');
 });
 
+app.get('/admin_addQuestions', (req, res) => {
+	res.sendFile(__dirname + '/public/admin_addQuestion.html');
+})
+
+app.post('/addQuestion', (req, res) => {
+	const questionCategory = req.body.questionCategory;
+	const question = req.body.question;
+	const options = req.body.options;
+	const correctAnswer = req.body.correctAnswer;
+
+	fs.readFile('questions.json', 'utf8', (err, data) => {
+		if (err) {
+			console.error('Error reading questions from file for adding a new question');
+		} else {
+			console.log('Questions read from file successfully for adding a new question');
+		}
+
+		const questions = JSON.parse(data)
+		const selectedCategory = questions.find(category => category.name === questionCategory)
+
+
+	})
+})
+
 app.get('/questions', (req, res) => {
 	fs.readFile('questions.json', 'utf8', (err, data) => {
 		if (err) {

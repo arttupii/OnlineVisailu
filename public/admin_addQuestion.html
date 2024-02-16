@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Lisää uusi kysymys</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #007BFF;
+            /* Tämä on Bootstrapin pääsininen väri */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label for="questionCategory">Valitse kategoria: </label>
+                                <select name="questionCategory" id="questionCategory">
+                                    <!-- Tähän tulevat kysymysten kategoriat -->
+                                </select>
+                        </div>
+                            
+                        <!-- Uusi kysymys -->
+                        <div class="mb-3">
+                            <label for="questionText" class="form-label">Uusi kysymys:</label>
+                            <input type="text" class="form-control" id="questionText" placeholder="Kirjoita kysymys tähän">
+                        </div>
+                        
+                        <div class="mb-2">Vastausvaihtoehdot:</div>
+                        <div id="optionsContainer" class="mb-3">
+                            <!-- Tekstipalkit vastausvaihtoehdoille tulevat tähän -->
+                        </div>
+
+                        <!-- Oikea vastaus kysymykselle -->
+                        <div class="mb-3">
+                            <label for="correctAnswer" class="form-label">Oikea vastaus:</label>
+                            <input type="text" class="form-control" id="correctAnswer" placeholder="Kirjoita oikea vastaus tähän">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="time" class="form-label">Aikaa vastata kysymykseen:</label>
+                            <input type="number" class="form-control" id="time">
+                        </div>
+
+                        <!-- Lähetä -painike -->
+                        <div>
+                            <button onclick="sendNewQuestion()">Lähetä</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function sendNewQuestion() {
+            // Hakee kysymykseen annetut tiedot muodostaakseen objektin
+            const category = document.getElementById('questionCategory').value;
+            const question = document.getElementById('questionText').value;
+            const correctAnswer = document.getElementById('correctAnswer').value;
+            const time = document.getElementById('time').value
+            const options = [];
+            const optionsValues = document.querySelectorAll('#optionsContainer input=[type="text"]');
+            optionsValues.forEach(input => {
+                options.push(input);
+            })
+
+            
+
+        }
+
+        // Luo tekstipalkit vastausvaihtoehdoille sivun ladattua.
+        document.addEventListener('DOMContentLoaded', () => {
+            const optionsContainer = document.getElementById('optionsContainer');
+
+            for (let i = 0; i < 4; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'form-control mb-3';
+                input.placeholder = `Lisää vaihtoehto ${i + 1}`;
+                optionsContainer.appendChild(input);
+            }
+        })
+
+        // Hae kysymyssarjat sivun ladattua.
+        fetch("/questions")
+            .then(response => response.json())
+            .then(categories => {
+                const questionCategory = document.getElementById('questionCategory');
+
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.name;
+                    option.innerText = category.name;
+                    questionCategory.appendChild(option);
+                })
+            })
+    </script>
+</body>
+</html>
