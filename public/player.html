@@ -3,32 +3,27 @@
 
 <head>
 	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Pelaaja - Visailu</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-	<style>
-		body {
-			background-color: #007BFF;
-			/* Bootstrapin pääsininen väri */
-		}
-	</style>
-
+	<link href="/static/bootstrap.min.css" rel="stylesheet">
+	<link href="/static/main.css" rel="stylesheet">
 </head>
 
 <body>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 	<div class="container mt-5">
 		<div class="row justify-content-center">
 			<div class="col-lg-6">
 				<div class="card">
 					<div class="card-body">
-						<h1 class="card-title text-center">Tervetuloa peliin!</h1>
-						<h2 id="questionText" class="text-center">Odota kysymystä...</h2>
-						<div id="timer" class="text-center mb-3">
+						<h1 class="card-title text-center mb-4" style="font-size: 1.5rem;">
+							Tervetuloa osallistumaan online-visailupeliin!
+						</h1>
+						<div class="text-center mb-4">
+							<h2 id="questionText">Odotathan pelin alkua...</h2>
+						</div>
+						<div id="timer" class="text-center mb-3" style="display: none;">
 							Aikaa jäljellä: <span id="remainingTime">0</span> sekuntia
 						</div>
-
 						<div id="options" class="d-grid gap-2">
 							<!-- Kysymyksen vaihtoehdot tulevat tähän -->
 						</div>
@@ -38,31 +33,120 @@
 		</div>
 	</div>
 
+	<script src="/static/bootstrap.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
 		const urlParams = new URLSearchParams(window.location.search);
 		const nickname = urlParams.get('nickname');
 		const gameId = urlParams.get('gameId');
 
+		// Tarkistetaan, onko nimimerkki ja pelitunnus annettu URL:issa
 		if (!nickname || !gameId) {
 			alert('Nimimerkki tai pelikoodi puuttuu!');
-			window.location.href = '/'; // Palaa takaisin index.html-sivulle
+			window.location.href = '/'; // Ohjataan takaisin pääsivulle
 		}
+
 		const socket = io.connect('http://localhost:3000');
 
-		socket.emit('joinGame', { gameId: gameId, nickname: nickname });
+		// Lähetä 'joinGame' tapahtuma pelitunnuksen ja nimi-merkin kanssa
+		socket.emit('joinGame', { gameId, nickname });
 
-		socket.on('joinedGame', (data) => {
-			if (!data.success) {
-				alert(data.message);
+		socket.on('joinedGame', ({ success, message }) => {
+			if (!success) {
+				alert(message);
 				window.location.href = '/';
 			}
-			// Muut toiminnot, kun pelaaja on liittynyt onnistuneesti
+			// Lisätoimenpiteet, kun pelaaja liittyy onnistuneesti
 		});
 
 		let timerInterval = null;
 
+		// Kuunellaan 'newQuestion' tapahtumaa palvelimelta.
 		socket.on('newQuestion', (question) => {
+			// if #timer is hidden, show it
+			const timerDiv = document.getElementById('timer');
+			timerDiv.style.display = 'block';
+
+			displayQuestion(question);
+			startTimer(question.duration);
+		});
+
+		// Kuunellaan 'gameOver' tapahtumaa palvelimelta.
+		socket.on('gameOver', async ({ score }) => {
+			const response = await fetch('/getWinner', {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ gameId })
+			});
+
+			const resp = await response.json();
+
+			console.info(`[DEBUG]: Vastaus vastaanotettu palvelimelta!`);
+
+			const timerDiv = document.getElementById('timer');
+			timerDiv.style.display = 'none';
+
+			if (resp.success) {
+				const questionText = document.getElementById('questionText');
+				questionText.style.fontSize = '1.5rem';
+				questionText.innerText = `Peli päättyi, voittaja on: ${resp.winner} pisteillä ${score}!`;
+			} else {
+				console.error('Virhe voittajan hakemisessa!', resp.message);
+			}
+
+			const optionsDiv = document.getElementById('options');
+			optionsDiv.innerHTML = '';
+			const btn = document.createElement('a');
+			btn.href = '/';
+			btn.innerText = 'Siirry takaisin etusivulle!';
+			btn.className = 'btn btn-primary';
+			optionsDiv.appendChild(btn);
+		});
+
+		// Funktio vastauksen käsittelyyn
+		function answerQuestion(selectedOption, btnElement, correctAnswer) {
+			// Poista kaikkien vaihtoehtopainikkeiden toiminta
+			const optionButtons = document.querySelectorAll('#options button');
+			optionButtons.forEach(button => {
+				button.disabled = true;
+				button.style.cursor = 'not-allowed';
+				button.style.pointerEvents = 'none';
+				button.style.borderColor = "#fff";
+				button.style.color = "#000";
+			});
+
+			btnElement.style.backgroundColor = selectedOption === correctAnswer ? "#16a34a" : "#dc2626";
+
+			btnElement.style.borderColor = selectedOption === correctAnswer ? "#16a34a" : "#dc2626";
+			btnElement.style.color = selectedOption === correctAnswer ? "#ffffff" : "#ffffff";
+
+			// Lähetä valittu vaihtoehto palvelimelle
+			socket.emit('answer', { gameId, option: selectedOption });
+		}
+
+		// Aloitetaan ajastin
+		function startTimer(duration) {
+			let remainingTime = duration;
+			const timerElement = document.getElementById('remainingTime');
+			timerElement.innerText = remainingTime;
+
+			// Päivitä ajastin joka sekunti
+			if (timerInterval) {
+				clearInterval(timerInterval);
+			}
+			timerInterval = setInterval(() => {
+				remainingTime -= 1;
+				timerElement.innerText = remainingTime;
+
+				if (remainingTime <= 0) {
+					clearInterval(timerInterval);
+					// Käsittele tilanne, kun aika loppuu
+				}
+			}, 1000);
+		}
+
+		// Näytetään kysymys ja vaihtoehdot
+		function displayQuestion(question) {
 			document.getElementById('questionText').innerText = question.question;
 
 			const optionsDiv = document.getElementById('options');
@@ -76,115 +160,22 @@
 				btn.onclick = () => answerQuestion(option, btn, question.correctAnswer);
 				optionsDiv.appendChild(btn);
 			});
-
-			currentQuestion = question;
-
-			// Aseta ajastin
-			let remainingTime = question.duration;
-			document.getElementById('remainingTime').innerText = remainingTime;
-
-			// Päivitä ajastinta joka sekunti
-			if (timerInterval) {
-				clearInterval(timerInterval);
-			}
-			timerInterval = setInterval(() => {
-				remainingTime -= 1;
-				document.getElementById('remainingTime').innerText = remainingTime;
-
-				if (remainingTime <= 0) {
-					clearInterval(timerInterval);
-					// Voit myös poistaa kysymyksen ja vaihtoehdot, kun aika loppuu
-					// esim. optionsDiv.innerHTML = '';
-				}
-			}, 1000);
-		});
-
-		socket.on('gameOver', (data) => {
-			alert(`Peli on päättynyt! Sait ${data.score} pistettä.`);
-
-			/*// Näytetään oikeat vastaukset
-			data.questions.forEach((question, index) => {
-				const playerAnswer = player.answers[index];
-				const correctAnswer = question.correctAnswer;
-				const result = document.createElement('div');
-				result.innerHTML = `
-					Kysymys: ${question.question} <br>
-					Oikea vastaus: ${correctAnswer} <br>
-					Sinun vastauksesi: ${playerAnswer} ${playerAnswer === correctAnswer ? '(Oikein)' : '(Väärin)'}
-				`;
-				document.body.appendChild(result);
-			});*/
-			//}
-		});
-
-		function answerQuestion(selectedOption, btnElement, correctAnswer) {
-			// Estä kaikki vaihtoehtopainikkeet
-			const optionButtons = document.querySelectorAll('#options button');
-			optionButtons.forEach(button => {
-				button.disabled = true;
-			});
-
-			if (selectedOption === correctAnswer) {
-				btnElement.style.backgroundColor = "green";
-			} else {
-				btnElement.style.backgroundColor = "red";
-			}
-
-			// Lähetä valittu vaihtoehto palvelimelle
-			socket.emit('answer', { gameId: gameId, option: selectedOption });
 		}
 
-		function displayQuestion(question) {
-			const questionText = document.getElementById('questionText');
-			const answerOptions = document.getElementById('answerOptions');
-
-			questionText.innerText = question.question;
-			answerOptions.innerHTML = ''; // Tyhjennä aiemmat vastausvaihtoehdot
-
-			question.options.forEach(option => {
-				const li = document.createElement('li');
-				li.innerText = option;
-				li.onclick = () => submitAnswer(option); // Kun vastausvaihtoehtoa klikataan, lähetä vastaus palvelimelle
-				answerOptions.appendChild(li);
-			});
-		}
-
-		function submitAnswer(answer) {
-			socket.emit('submitAnswer', { answer: answer, gameId: 'gameIdHere' }); // Tämä 'gameIdHere' pitäisi korvata todellisella pelitunnuksella
-		}
-
-		function joinGame() {
-			const gameCode = document.getElementById('gameCodeInput').value;
-			if (!gameCode) {
-				alert("Syötä pelikoodi ennen liittymistä!");
-				return;
-			}
-
-			socket.emit('joinGame', { gameId: gameCode });
-		}
-
-		socket.on('gameStarted', () => {
-			fetch('/questions')
-				.then(response => response.json())
-				.then(questions => {
-					if (questions.length > 0) {
-						displayQuestion(questions[0]); // Näytä ensimmäinen kysymys
-					}
-				});
-		});
-
+		// Funktio taulukon sekoittamiseen
 		function mixArray(array, times) {
-			let mixxedArray = [...array];
+			let mixedArray = [...array];
 
 			for (let i = 0; i < times; i++) {
-				for (let j = mixxedArray.length - 1; j > 0; j--) {
+				for (let j = mixedArray.length - 1; j > 0; j--) {
 					const randomIndex = Math.floor(Math.random() * (j + 1));
-					[mixxedArray[j], mixxedArray[randomIndex]] = [mixxedArray[randomIndex], mixxedArray[j]];
+					[mixedArray[j], mixedArray[randomIndex]] = [mixedArray[randomIndex], mixedArray[j]];
 				}
 			}
 
-			return mixxedArray;
+			return mixedArray;
 		}
 	</script>
 </body>
+
 </html>

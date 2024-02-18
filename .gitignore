@@ -4,6 +4,9 @@
 node_modules/
 package-lock.json
 
+# PM2
+.pm2/
+
 .vscode/
 
 # Muut ei-toivotut tiedostot
