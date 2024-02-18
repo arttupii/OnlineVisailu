@@ -62,6 +62,148 @@
                 ],
                 "correctAnswer": "Sininen ja valkoinen",
                 "duration": 3
+            },
+            {
+                "id": 3,
+                "question": "Kuinka monta järvistä Suomella on yli 10 hehtaarin kokoisia?",
+                "options": [
+                    "1878",
+                    "140",
+                    "27000",
+                    "109"
+                ],
+                "correctAnswer": "1878",
+                "duration": 5
+            }
+        ]
+    },
+    {
+        "name": "Kajaanin kysymyksiä",
+        "questions": [
+            {
+                "id": 1,
+                "question": "Mikä on Kajaanin tunnetuin nähtävyys?",
+                "options": [
+                    "Kajaanin linna",
+                    "Paltaniemen silta",
+                    "Kajaanin kauppahalli",
+                    "Kajaanin kaupungintalo"
+                ],
+                "correctAnswer": "Kajaanin linna",
+                "duration": 25
+            },
+            {
+                "id": 2,
+                "question": "Missä Kajaanin museo sijaitsee?",
+                "options": [
+                    "Kaukametsän taidemuseossa",
+                    "Kajaanin kaupungintalossa",
+                    "Kajaanin linnassa",
+                    "Paltaniemen sillalla"
+                ],
+                "correctAnswer": "Kaukametsän taidemuseossa",
+                "duration": 25
+            },
+            {
+                "id": 3,
+                "question": "Mikä on Kajaanin jokien nimi?",
+                "options": [
+                    "Kajaani- ja Oulujoki",
+                    "Kokemäenjoki ja Kemijoki",
+                    "Kymijoki ja Tornionjoki",
+                    "Vuoksi- ja Tenojoki"
+                ],
+                "correctAnswer": "Kajaani- ja Oulujoki",
+                "duration": 25
+            },
+            {
+                "id": 4,
+                "question": "Mikä on Kajaanin perustamisvuosi?",
+                "options": [
+                    "1652",
+                    "1776",
+                    "1839",
+                    "1899"
+                ],
+                "correctAnswer": "1652",
+                "duration": 25
+            },
+            {
+                "id": 5,
+                "question": "Mikä on Kajaanin nykyinen asukasluku?",
+                "options": [
+                    "n. 38000",
+                    "n. 29000",
+                    "n. 45000",
+                    "n. 55000"
+                ],
+                "correctAnswer": "n. 38000",
+                "duration": 25
+            }
+        ]
+    },
+    {
+        "name": "Kajaanin tunnettuja kohteita",
+        "questions": [
+            {
+                "id": 1,
+                "question": "Mikä on Kajaanin tunnetuin nähtävyys?",
+                "options": [
+                    "Kajaanin linna",
+                    "Paltaniemen silta",
+                    "Kajaanin kauppahalli",
+                    "Kajaanin kaupungintalo"
+                ],
+                "correctAnswer": "Kajaanin linna",
+                "duration": 25
+            },
+            {
+                "id": 2,
+                "question": "Missä Kajaanin museo sijaitsee?",
+                "options": [
+                    "Kaukametsän taidemuseossa",
+                    "Kajaanin kaupungintalossa",
+                    "Kajaanin linnassa",
+                    "Paltaniemen sillalla"
+                ],
+                "correctAnswer": "Kaukametsän taidemuseossa",
+                "duration": 25
+            },
+            {
+                "id": 3,
+                "question": "Mikä on Kajaanin jokien nimi?",
+                "options": [
+                    "Kajaani- ja Oulujoki",
+                    "Kokemäenjoki ja Kemijoki",
+                    "Kymijoki ja Tornionjoki",
+                    "Vuoksi- ja Tenojoki"
+                ],
+                "correctAnswer": "Kajaani- ja Oulujoki",
+                "duration": 25
+            },
+            {
+                "id": 4,
+                "question": "Mikä on Kajaanin perustamisvuosi?",
+                "options": [
+                    "1652",
+                    "1776",
+                    "1839",
+                    "1899"
+                ],
+                "correctAnswer": "1652",
+                "duration": 25
+            },
+            {
+                "id": 5,
+                "question": "Mikä on Kajaanin nykyinen asukasluku?",
+                "options": [
+                    "n. 38000",
+                    "n. 29000",
+                    "n. 45000",
+                    "n. 55000"
+                ],
+                "correctAnswer": "n. 38000",
+                "duration": 25
             }
         ]
     }

@@ -1,180 +1,175 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const fs = require('fs');
+const fs = require('fs').promises;
 
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+class VisailuServer {
+	constructor() {
+		console.clear();
+		this.app = express();
+		this.server = http.createServer(this.app);
+		this.io = socketIo(this.server);
+		this.games = {};
 
-app.use(express.static('public'));
-app.use(express.urlencoded({
-	extended: true
-}));
-app.use(express.json());
+		this.setupMiddleware();
+		this.setupSocketIO();
+		this.setupRoutes();
+		this.server.listen(3000, () => console.log('Palvelin käynnistetty porttiin 3000'));
+	}
 
-let games = {
-	// Esimerkki pelistä:
-	// "123456": {
-	//     players: [{ socketId: 'someSocketId', nickname: 'playerName', score: 0, answers: [] }],
-	//     started: false,
-	//     questions: []
-	// }
-};
+	setupMiddleware() {
+		this.app.use(express.static('public'));
+		this.app.use(express.urlencoded({ extended: true }));
+		this.app.use(express.json());
+	}
 
-io.on('connection', (socket) => {
-	socket.on('createGame', (data, callback) => {
-		const gameId = generateGameId();
-		games[gameId] = {
-			players: [],
-			started: false,
-			questions: [], // Alusta tyhjänä
-			// ... muut peliin liittyvät tiedot ...
-		};
+	setupSocketIO() {
+		this.io.on('connection', (socket) => {
+			socket.on('createGame', async (data, callback) => {
+				this.createGame(socket, data, callback);
+			});
+
+			socket.on('joinGame', (data) => {
+				this.joinGame(socket, data);
+			});
+
+			socket.on('startGame', async (data) => {
+				this.startGame(socket, data);
+			});
+
+			socket.on('answer', (data) => {
+				this.answer(socket, data);
+			});
+		});
+	}
+
+	setupRoutes() {
+		this.app.get('/', (req, res) => res.send('Node.js-based Quiz Game!'));
+		this.app.get('/admin', (req, res) => res.sendFile(__dirname + '/public/admin.html'));
+		this.app.get('/questions', async (req, res) => this.getQuestions(req, res));
+		this.app.get('/player', (req, res) => res.sendFile(__dirname + '/public/player.html'));
+		this.app.post('/getUsers', (req, res) => this.getUsers(req, res));
+		this.app.post('/getWinner', (req, res) => this.getWinner(req, res));
+		this.app.get('/static/bootstrap.min.js', (req, res) => res.sendFile(__dirname + '/node_modules/bootstrap/dist/js/bootstrap.bundle.min.js'));
+		this.app.get('/static/bootstrap.min.css', (req, res) => res.sendFile(__dirname + '/node_modules/bootstrap/dist/css/bootstrap.min.css'));
+		this.app.get('/static/main.css', (req, res) => res.sendFile(__dirname + '/src/static/main.css'));
+	}
+
+	async createGame(socket, data, callback) {
+		const gameId = this.generateGameId();
+		this.games[gameId] = { players: [], started: false, questions: [] };
 		callback(gameId);
-		console.log("Create Game, gameId=", gameId);
 		socket.join(gameId);
-		games[gameId].players.push({ socketId: socket.id, nickname: "", score: -1, admin: true });
-	});
+		this.games[gameId].players.push(this.createPlayer(socket.id, true));
+	}
 
-	socket.on('joinGame', (data) => {
-		const gameId = data.gameId;
-		const nickname = data.nickname;
-
-		if (games[gameId] && !games[gameId].started) {
+	joinGame(socket, data) {
+		const { gameId, nickname } = data;
+		if (this.games[gameId] && !this.games[gameId].started) {
 			socket.join(gameId);
-			games[gameId].players.push({ socketId: socket.id, nickname: nickname, score: 0 });
+			this.games[gameId].players.push(this.createPlayer(socket.id, false, nickname));
 			socket.emit('joinedGame', { success: true });
-
-			console.log("Joined to game, socketId: socket.id:%s, nickname:%s", socket.id, nickname);
-
 		} else {
-			socket.emit('joinedGame', { success: false, message: 'Peliä ei löydy tai se on jo alkanut!' });
-
-			console.log("Not joined to game [Invalid gameId], socketId: socket.id:%s, nickname:%s", socket.id, nickname);
+			socket.emit('joinedGame', { success: false, message: 'Game not found or already started!' });
 		}
-	});
+	}
 
-	/*socket.on('startGame', (data) => {
-		const gameId = data.gameId;
-		const seriesName = data.seriesName;
-
-		if (games[gameId]) {
-			games[gameId].started = true;
-			
-			const allQuestions = JSON.parse(fs.readFileSync('questions.json', 'utf8'));
+	async startGame(socket, data) {
+		const { gameId, seriesName } = data;
+		if (this.games[gameId]) {
+			this.games[gameId].started = true;
+			const allQuestions = await this.readQuestions();
 			const seriesQuestions = allQuestions.find(series => series.name === seriesName).questions;
-
-			sendQuestion(gameId, seriesQuestions, 0);
+			this.games[gameId].questions = seriesQuestions;
+			this.sendQuestion(gameId, seriesQuestions, 0);
 		}
-	});*/
+	}
 
-	socket.on('startGame', (data) => {
-		const gameId = data.gameId;
-		const seriesName = data.seriesName;
-
-		if (games[gameId]) {
-			games[gameId].started = true;
-
-			const allQuestions = JSON.parse(fs.readFileSync('questions.json', 'utf8'));
-			const seriesQuestions = allQuestions.find(series => series.name === seriesName).questions;
-
-			games[gameId].questions = seriesQuestions;
-			sendQuestion(gameId, seriesQuestions, 0);
-		}
-	});
-
-	socket.on('answer', (data) => {
-		console.log(JSON.stringify(games, " ", 0));
-		const game = games[data.gameId];
+	answer(socket, data) {
+		const game = this.games[data.gameId];
 		if (game) {
 			const player = game.players.find(p => p.socketId === socket.id);
 			if (player) {
 				const currentQuestion = game.questions[game.currentQuestionIndex];
-
-				console.log(data);
-
-				if (data.option === currentQuestion.correctAnswer) {
-					player.score += 1;
-
-				}
-				console.log("Player score, nickname:%, score:%s", player.nickname, player.score);
-				//player.answers.push(data.option);
+				player.score += data.option === currentQuestion.correctAnswer ? 1 : 0;
 			}
 		}
-	});
-});
-
-function sendQuestion(gameId, seriesQuestions, questionIndex) {
-	if (seriesQuestions[questionIndex]) {
-		const currentQuestion = seriesQuestions[questionIndex];
-
-		games[gameId].currentQuestionIndex = questionIndex;  // Tallenna nykyinen kysymysindeksi
-
-		// Lähetä kysymys pelaajille
-		io.in(gameId).emit('newQuestion', currentQuestion);
-
-		setTimeout(() => {
-			sendQuestion(gameId, seriesQuestions, questionIndex + 1);
-		}, currentQuestion.duration * 1000);
-	} else {
-		endGame(gameId);  // Kutsutaan endGame-funktiota, kun kaikki kysymykset on esitetty
 	}
-}
 
-// Kun peli päättyy...
-function endGame(gameId) {
-	const game = games[gameId];
-	if (game) {
-		game.players.forEach(player => {
-			if (player.score === -1) {
-				//admin tai pelin luoja
-
-				io.to(player.socketId).emit('gameOver', game.players.filter(function (p) {
-					return p.score > -1;
-				}).map(function (p) {
-					return { nickname: p.nickname, score: p.score };
-				}));
-			} else {
-				//pelaajalle omat pisteet
-				io.to(player.socketId).emit('gameOver', { score: player.score });
-			}
-		});
+	async readQuestions() {
+		try {
+			const data = await fs.readFile('questions.json', 'utf8');
+			return JSON.parse(data);
+		} catch (err) {
+			console.error('Error reading questions:', err);
+			return [];
+		}
 	}
-}
 
-app.get('/admin', (req, res) => {
-	res.sendFile(__dirname + '/public/admin.html');
-});
+	sendQuestion(gameId, seriesQuestions, questionIndex) {
+		if (seriesQuestions[questionIndex]) {
+			const currentQuestion = seriesQuestions[questionIndex];
+			this.games[gameId].currentQuestionIndex = questionIndex;
+			this.io.in(gameId).emit('newQuestion', currentQuestion);
+			setTimeout(() => this.sendQuestion(gameId, seriesQuestions, questionIndex + 1), currentQuestion.duration * 1000);
+		} else {
+			this.endGame(gameId);
+		}
+	}
 
-app.get('/questions', (req, res) => {
-	fs.readFile('questions.json', 'utf8', (err, data) => {
-		if (err) {
+	endGame(gameId) {
+		const game = this.games[gameId];
+		if (game) {
+			game.players.forEach(player => {
+				const payload = player.admin ?
+					game.players.filter(p => p.score >= 0).map(p => ({ nickname: p.nickname, score: p.score })) :
+					{ score: player.score };
+				this.io.to(player.socketId).emit('gameOver', payload);
+			});
+		}
+	}
+
+	createPlayer(socketId, isAdmin, nickname = '') {
+		return { socketId, nickname, score: isAdmin ? -1 : 0, admin: isAdmin };
+	}
+
+	async getQuestions(req, res) {
+		try {
+			const data = await this.readQuestions();
+			res.json(data);
+		} catch (err) {
 			res.status(500).send('Error reading questions');
-			return;
 		}
-		res.json(JSON.parse(data));
-	});
-});
-app.get('/player', (req, res) => {
-	res.sendFile(__dirname + '/public/player.html');
-});
-app.post('/getUsers', (req, res) => {
-	console.log("Pyyntö saatu.");
-	console.log(req.body);
-	res.send(games[req.body.gameId].players);
-	console.log(games);
-	console.log(req.body.gameId);
-});
-app.get('/', (req, res) => {
-	res.send('Kahoot-tyylinen peli Node.js:llä!');
-});
+	}
 
-server.listen(3000, () => {
-	console.log('Server listening on port 3000');
-});
+	async getUsers(req, res) {
+		const gameId = req.body.gameId;
+		if (this.games[gameId]) {
+			res.send(this.games[gameId].players);
+		} else {
+			res.status(404).send('Game not found');
+		}
+	}
 
-function generateGameId() {
-	// Yksinkertainen esimerkki: satunnainen 4-numeroinen koodi. Voit laajentaa tätä tarpeen mukaan.
-	return Math.floor(1000 + Math.random() * 9000).toString();
+	async getWinner(req, res) {
+		const gameId = req.body.gameId;
+		if (this.games[gameId]) {
+			const winner = this.games[gameId].players.reduce((prev, current) => (prev.score > current.score) ? prev : current);
+			res.send({
+				"success": true,
+				"winner": winner["nickname"],
+			});
+		} else {
+			res.status(404).send({
+				"success": false,
+				"message": "Game not found!"
+			});
+		}
+	}
+
+	generateGameId() {
+		return Math.floor(1000 + Math.random() * 9000).toString();
+	}
 }
+
+new VisailuServer();

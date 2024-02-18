@@ -3,21 +3,13 @@
 
 <head>
 	<meta charset="UTF-8">
-	<title>Admin - Hallitse peliä</title>
-
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-	<style>
-		body {
-			background-color: #007BFF;
-			/* Bootstrapin pääsininen väri */
-		}
-	</style>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Admin - Hallinnoi onlinevisailua!</title>
+	<link href="/static/bootstrap.min.css" rel="stylesheet">
+	<link href="/static/main.css" rel="stylesheet">
 </head>
 
 <body>
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 	<div class="container mt-5">
 		<div class="row justify-content-center">
 			<div class="col-lg-8">
@@ -26,17 +18,16 @@
 						Admin Paneeli
 					</div>
 					<div class="card-body">
-
 						<!-- Luo uusi peli -->
-						<div class="mb-3">
-							<h2>Luo uusi peli:</h2>
-							<button onclick="createNewGame()" class="btn btn-success mb-2">Luo peli</button>
+						<div class="mb-4">
+							<h2 class="mb-3">Luo uusi peli:</h2>
+							<button onclick="createNewGame()" class="btn btn-success mb-3">Luo peli</button>
 							<div id="gameCode" class="alert alert-info">Liittymiskoodi: Ei vielä luotu</div>
 						</div>
 
 						<!-- Valitse kysymyssarja -->
-						<div class="mb-3">
-							<h2>Valitse kysymyssarja:</h2>
+						<div class="mb-4">
+							<h2 class="mb-3">Valitse kysymyssarja:</h2>
 							<div class="input-group">
 								<select id="seriesSelector" class="form-select"></select>
 								<button onclick="startSelectedSeries()" class="btn btn-primary">Aloita valittu
@@ -51,11 +42,11 @@
 						</div>
 
 						<!-- Pelaajalistaus -->
-						<div data-type="pelinpelaajat">
-							<h3 class="text-center mt-4">Pelaajat: </h3>
+						<div data-type="pelinpelaajat" class="mb-4">
+							<h3 class="text-center mt-4">Pelaajat:</h3>
 							<div id="playersId" class="text-center alert alert-secondary">Ei pelaajia</div>
 						</div>
-						
+
 						<!-- Lopputulokset -->
 						<div data-type="Lopputulokset" style="display: none;">
 							<h3 class="text-center mt-4">Lopputulokset:</h3>
@@ -68,6 +59,7 @@
 	</div>
 
 
+	<script src="/static/bootstrap.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
 		const socket = io.connect('http://localhost:3000');
@@ -93,7 +85,7 @@
 			pelinkyssari.style.display = 'block';
 
 			const seriesName = document.getElementById('seriesSelector').value;
-			socket.emit('startGame', { gameId: currentGameId, seriesName: seriesName });
+			socket.emit('startGame', { gameId: currentGameId, seriesName });
 		}
 
 		function clearResults() {
@@ -103,26 +95,22 @@
 		}
 
 		// Lataa kysymyssarjat heti, kun sivu latautuu
-		fetch('/questions')
-			.then(response => response.json())
-			.then(allQuestions => {
-				const seriesSelector = document.getElementById('seriesSelector');
-				allQuestions.forEach(series => {
-					const option = document.createElement('option');
-					option.value = series.name;
-					option.innerText = series.name;
-					seriesSelector.appendChild(option);
-				});
+		(async () => {
+			const response = await fetch('/questions');
+			const allQuestions = await response.json();
+			const seriesSelector = document.getElementById('seriesSelector');
+			allQuestions.forEach(series => {
+				const option = document.createElement('option');
+				option.value = series.name;
+				option.innerText = series.name;
+				seriesSelector.appendChild(option);
 			});
+		})();
 
 		socket.on('newQuestion', (question) => {
-			console.log(question);
-
+			console.info(`[DEBUG]: `, question);
 			const questionDiv = document.getElementById('currentQuestion');
-			questionDiv.innerHTML = `
-				Kysymys: ${question.question} <br>
-				Vaihtoehdot: ${question.options.join(', ')}
-			`;
+			questionDiv.innerHTML = `Kysymys: ${question.question} <br> Vaihtoehdot: ${question.options.join(', ')}`;
 		});
 
 		socket.on('gameOver', (data) => {
@@ -141,35 +129,32 @@
 			resultDiv.innerHTML = '';
 			resultDiv.style.display = 'block';
 
-
 			data.forEach(player => {
-				/* 			const result = document.createElement('div');
-							result.innerText = `${player.nickname}: ${player.score} pistettä`;
-							document.body.appendChild(result); */
 				resultDiv.innerHTML += `${player.nickname}: ${player.score} pistettä <br>`;
 			});
 		});
-	setInterval(function() {
-		fetch('/getUsers', {
-			method: "POST",
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify({
-				gameId: currentGameId
-			})
-		})
-			.then(function (response) {
-				return response.json();
-			})
-			.then(function (resp) {
-				console.log("vastaus saatu");
-				playerText = document.getElementById("playersId");
-				const playersWithNames = resp.filter(player => player.nickname);
-            	const playerNames = playersWithNames.map(player => player.nickname).join('\n');
-            	const playerCount = playersWithNames.length;
 
-            playerText.innerText = `Pelaajat (${playerCount} kpl):\n${playerNames}`;
+		setInterval(async function () {
+			if (!currentGameId) return;
+
+			const response = await fetch('/getUsers', {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ gameId: currentGameId })
 			});
+
+			const resp = await response.json();
+
+			console.info(`[DEBUG]: Vastaus vastaanotettu palvelimelta!`);
+			const playerText = document.getElementById("playersId");
+			const playersWithNames = resp.filter(player => player.nickname);
+			const playerNames = playersWithNames.map(player => player.nickname).join('\n');
+			const playerCount = playersWithNames.length;
+
+			playerText.innerText = `Pelaajat (${playerCount} kpl):\n${playerNames}`;
 		}, 3000);
+
 	</script>
 </body>
+
 </html>
