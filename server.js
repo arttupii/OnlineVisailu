@@ -163,13 +163,22 @@ app.post('/addQuestion', (req, res) => {
 		}
 
 		// Etsii kysymyksen kategorian sijainnin taulukosta
-		const categoryIndex = allQuestions.findIndex(category => category.name === newQuestionCategory);
+		let categoryIndex = allQuestions.findIndex(category => category.name === newQuestionCategory);
+
+		if (categoryIndex === -1) {
+			newCategory = {
+				name: newQuestionCategory,
+				questions: []
+			}
+
+			allQuestions.push(newCategory);
+			categoryIndex = allQuestions.findIndex(category => category.name === newQuestionCategory);
+		}
 
 		// Luo kysymykselle id-arvon perustuen kysymyksen kategorian viimeisimmän kysymyksen id-arvoon
 		const newId = allQuestions[categoryIndex].questions.length + 1;
 		newQuestion.id = newId;
 
-		// Lisää kysymyksen valittuun kategoriaan
 		allQuestions[categoryIndex].questions.push(newQuestion);
 
 		// Kirjoittaa päivitetyn kysymysobjektin takaisin tiedostoon
@@ -234,6 +243,12 @@ function validateInput(input) {
 	// Tarkistaa, että vastausvaihtoehtoja on vähintään kaksi
 	if (input.options.length < 2) {
 		return { error : "Vastausvaihtoehtoja pitää olla vähintään kaksi!" };
+	}
+
+	// Tarkistaa, ettei vastausvaihtoehtoja ole kaksi samaa
+	const uniqueOptions = new Set(input.options);
+	if (uniqueOptions.size !== input.options.length) {
+		return { error: "Vastausvaihtoehtoja ei voi olla kaksi samaa!" }
 	}
 
 	// Tarkistaa, että aikaraja vastaamiseen ei ole negatiivinen

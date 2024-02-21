@@ -27,6 +27,11 @@
                                     <!-- Tähän tulevat kysymysten kategoriat -->
                                 </select>
                         </div>
+
+                        <div id="newCategory" class="mb-3" style="display: none">
+                            <label for="newCategoryInput" class="form-label">Uuden kategorian nimi:</label>
+                            <input type="text" class="form-control" id="newCategoryInput" placeholder="Kirjoita kategoria tähän">
+                        </div>
                             
                         <!-- Uusi kysymys -->
                         <div class="mb-3">
@@ -64,8 +69,14 @@
     <script>
         // Lähettää uuden kysymyksen serverille käsiteltäväksi.
         function sendNewQuestion() {
-            // Hakee kategorian
-            const category = document.getElementById('questionCategory').value;
+
+            newCategoryInput = document.getElementById("newCategoryInput").value;
+            let category;
+            if (newCategoryInput) {
+                category = newCategoryInput;
+            } else {
+                category = document.getElementById("questionCategory").value;
+            }
 
             // Hakee kysymyksen
             const question = document.getElementById('questionText').value;
@@ -136,12 +147,29 @@
                 const questionCategory = document.getElementById('questionCategory');
 
                 categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.name;
-                    option.innerText = category.name;
-                    questionCategory.appendChild(option);
+                    const categoryOption = document.createElement('option');
+                    categoryOption.value = category.name;
+                    categoryOption.innerText = category.name;
+                    questionCategory.appendChild(categoryOption);
                 })
-            })
+
+            const newCategory = document.createElement('option');
+            newCategory.value = "Lisää uusi kategoria";
+            newCategory.innerText = "Lisää uusi kategoria";
+            questionCategory.appendChild(newCategory);
+            });
+        
+        const questionCategory = document.getElementById("questionCategory");
+        questionCategory.addEventListener('change', () => {
+            const category = questionCategory.value;
+            const newCategory = document.getElementById("newCategory");
+
+            if (category === "Lisää uusi kategoria") {
+                newCategory.style.display = 'block';
+            } else {
+                newCategory.style.display = 'none';
+            }
+        });
     </script>
 </body>
 </html>
