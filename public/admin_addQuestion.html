@@ -30,31 +30,31 @@
                             
                         <!-- Uusi kysymys -->
                         <div class="mb-3">
-                            <label for="questionText" class="form-label">Uusi kysymys:</label>
+                            <label for="questionText" class="form-label">Uusi kysymys (pakollinen):</label>
                             <input type="text" class="form-control" id="questionText" placeholder="Kirjoita kysymys tähän">
                         </div>
                         
-                        <div class="mb-2">Vastausvaihtoehdot:</div>
+                        <div class="mb-2">Vastausvaihtoehdot (vähintään kaksi):</div>
                         <div id="optionsContainer" class="mb-3">
                             <!-- Tekstipalkit vastausvaihtoehdoille tulevat tähän -->
                         </div>
 
                         <!-- Oikea vastaus kysymykselle -->
                         <div class="mb-3">
-                            <label for="correctAnswer" class="form-label">Oikea vastaus:</label>
+                            <label for="correctAnswer" class="form-label">Oikea vastaus (pakollinen):</label>
                             <input type="text" class="form-control" id="correctAnswer" placeholder="Kirjoita oikea vastaus tähän">
                         </div>
 
+                        <!-- Aikaa vastata kysymykseen -->
                         <div class="mb-3">
-                            <label for="time" class="form-label">Aikaa vastata kysymykseen:</label>
-                            <input type="number" class="form-control" id="time">
+                            <label for="duration" class="form-label">Aikaa vastata kysymykseen, sekunteina (pakollinen):</label>
+                            <input type="number" class="form-control" id="duration">
                         </div>
 
                         <!-- Lähetä -painike -->
                         <div>
                             <button onclick="sendNewQuestion()">Lähetä</button>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -62,36 +62,74 @@
     </div>
     
     <script>
+        // Lähettää uuden kysymyksen serverille käsiteltäväksi.
         function sendNewQuestion() {
-            // Hakee kysymykseen annetut tiedot muodostaakseen objektin
+            // Hakee kategorian
             const category = document.getElementById('questionCategory').value;
+
+            // Hakee kysymyksen
             const question = document.getElementById('questionText').value;
+
+            // Hakee oikean vastauksen
             const correctAnswer = document.getElementById('correctAnswer').value;
-            const time = document.getElementById('time').value
-            const options = [];
-            const optionsValues = document.querySelectorAll('#optionsContainer input=[type="text"]');
-            optionsValues.forEach(input => {
-                options.push(input);
+
+            // Hakee ajan, jonka admin määrittää vastaamiseen
+            const duration = document.getElementById('duration').value;
+
+            // Hakee annetut vastausvaihtoehdot
+            const optionsValues = document.querySelectorAll('#optionsContainer input[type="text"]');
+
+            // Lisää taulukkoon kaikki vaihtoehdot, jotka eivät ole tyhjiä
+            const options = Array.from(optionsValues).map(input => input.value.trim()).filter(value => value !== "");
+
+            // Luo objektin kysymyksen tiedoista
+            const newQuestion = {
+                category: category,
+                id: '',
+                question: question,
+                options: options,
+                correctAnswer: correctAnswer,
+                duration: duration
+            };
+
+            // Lähettää 'POST' requestin serverille uuden kysymyksen tietojen käsittelyä varten
+            fetch('/addQuestion', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(newQuestion)
             })
-
-            
-
+            .then(response => {
+                if (response.status === 400 || response.ok) {
+                    return response.json();
+                } else {
+                    alert("Odottamaton virhe tapahtui. Yritä uudelleen myöhemmin.");
+                }
+            })
+            .then(data => {
+                if (data && data.success) {
+                    alert(data.message);
+                    window.location.href = "/admin.html";
+                } else if (data && !data.success) {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            })
         }
 
-        // Luo tekstipalkit vastausvaihtoehdoille sivun ladattua.
-        document.addEventListener('DOMContentLoaded', () => {
-            const optionsContainer = document.getElementById('optionsContainer');
+        // Luo tekstikentät vastausvaihtoehdoille sivun ladattua
+        const optionsContainer = document.getElementById('optionsContainer');
 
-            for (let i = 0; i < 4; i++) {
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.className = 'form-control mb-3';
-                input.placeholder = `Lisää vaihtoehto ${i + 1}`;
-                optionsContainer.appendChild(input);
+        for (let i = 0; i < 4; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control mb-3';
+            input.placeholder = `Lisää vaihtoehto ${i + 1}`;
+            optionsContainer.appendChild(input);
             }
-        })
 
-        // Hae kysymyssarjat sivun ladattua.
+        // Hakee kysymyssarjat sivun ladattua
         fetch("/questions")
             .then(response => response.json())
             .then(categories => {

@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const fs = require('fs');
+const { error } = require('console');
 
 const app = express();
 const server = http.createServer(app);
@@ -54,20 +55,6 @@ io.on('connection', (socket) => {
 			console.log("Not joined to game [Invalid gameId], socketId: socket.id:%s, nickname:%s", socket.id, nickname);
 		}
 	});
-
-	/*socket.on('startGame', (data) => {
-		const gameId = data.gameId;
-		const seriesName = data.seriesName;
-
-		if (games[gameId]) {
-			games[gameId].started = true;
-			
-			const allQuestions = JSON.parse(fs.readFileSync('questions.json', 'utf8'));
-			const seriesQuestions = allQuestions.find(series => series.name === seriesName).questions;
-
-			sendQuestion(gameId, seriesQuestions, 0);
-		}
-	});*/
 
 	socket.on('startGame', (data) => {
 		const gameId = data.gameId;
@@ -140,23 +127,61 @@ app.get('/admin_addQuestions', (req, res) => {
 	res.sendFile(__dirname + '/public/admin_addQuestion.html');
 })
 
+// Päätepiste uuden kysymyksen lisäämiselle.
 app.post('/addQuestion', (req, res) => {
-	const questionCategory = req.body.questionCategory;
-	const question = req.body.question;
-	const options = req.body.options;
-	const correctAnswer = req.body.correctAnswer;
+	// Poimii kysymyksen objektin pyynnön rungosta
+	const forValidation = req.body;
 
+	// Poimii kysymyksen kategorian
+	const newQuestionCategory = req.body.category;
+
+	// Tarkistaa syötteiden kelvollisuuden ja tallentaa kysymysobjektin muuttujaan
+	const newQuestion = validateInput(forValidation);
+
+	// Jos kysymys on virheellinen, lähettää virheen selaimelle
+	if (newQuestion.error) {
+		res.status(400).json({ success: false, message: newQuestion.error });
+		return;
+	}
+
+	// Lukee kysymystiedoston uuden kysymyksen lisäämistä varten
 	fs.readFile('questions.json', 'utf8', (err, data) => {
 		if (err) {
-			console.error('Error reading questions from file for adding a new question');
-		} else {
-			console.log('Questions read from file successfully for adding a new question');
+			console.error('\nVirhe lukiessa tiedostoa: ', err);
+			res.status(500).send("Virhe lukiessa kysymystiedostoa");
+			return;
 		}
 
-		const questions = JSON.parse(data)
-		const selectedCategory = questions.find(category => category.name === questionCategory)
+		// Jäsentää luetun tiedon JavaScript-objektiksi
+		let allQuestions;
+		try {
+			allQuestions = JSON.parse(data);
+		} catch (parseError) {
+			console.error("\nVirhe jäsennettäessä tiedostoa: ", parseError);
+			res.status(500).send("Virhe jäsennettäessä tiedostoa");
+			return;
+		}
 
+		// Etsii kysymyksen kategorian sijainnin taulukosta
+		const categoryIndex = allQuestions.findIndex(category => category.name === newQuestionCategory);
 
+		// Luo kysymykselle id-arvon perustuen kysymyksen kategorian viimeisimmän kysymyksen id-arvoon
+		const newId = allQuestions[categoryIndex].questions.length + 1;
+		newQuestion.id = newId;
+
+		// Lisää kysymyksen valittuun kategoriaan
+		allQuestions[categoryIndex].questions.push(newQuestion);
+
+		// Kirjoittaa päivitetyn kysymysobjektin takaisin tiedostoon
+		fs.writeFile('questions.json', JSON.stringify(allQuestions, null, 2), (err) => {
+			if (err) {
+				console.error("\nKysymystä ei voitu lisätä tiedostoon");
+				res.status(500).send("Virhe kirjoittaessa tiedostoon");
+			} else {
+				console.log("\nKysymys lisätty tiedostoon");
+				res.status(201).json({ success: true, message: "Kysymys lisätty onnistuneesti!" });
+			}
+		})
 	})
 })
 
@@ -190,4 +215,38 @@ server.listen(3000, () => {
 function generateGameId() {
 	// Yksinkertainen esimerkki: satunnainen 4-numeroinen koodi. Voit laajentaa tätä tarpeen mukaan.
 	return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+// Tarkistaa, että kysymyksen syötteet ovat kelvollisia.
+// Palauttaa virhekuvauksen jos jokin syöte on viallinen.
+// Muuten palauttaa kysymyksen objektina jatkotoimenpiteitä varten.
+function validateInput(input) {
+	// Tarkistaa, että kaikki pakolliset kentät ovat täytetty
+	if (!input.question || !input.options || !input.correctAnswer || !input.duration) {
+		return { error: "Kaikki pakolliset kentät on täytettävä!" };
+	}
+
+	// Tarkistaa, että annettu oikea vastaus löytyy annetuista vastausvaihtoehdoista
+	if (!input.options.includes(input.correctAnswer)) {
+		return { error: "Annettua oikeaa vastausta ei löydy vastausvaihtoehdoista!" };
+	}
+
+	// Tarkistaa, että vastausvaihtoehtoja on vähintään kaksi
+	if (input.options.length < 2) {
+		return { error : "Vastausvaihtoehtoja pitää olla vähintään kaksi!" };
+	}
+
+	// Tarkistaa, että aikaraja vastaamiseen ei ole negatiivinen
+	if (parseInt(input.duration, 10) < 0) {
+		return { error: "Aikaraja vastaamiseen ei voi olla negatiivinen!" };
+	}
+
+	// Mikäli kysymys läpäisee tarkastuksen, lähettää kysymyksen objektina
+	return { 
+		id: '',
+		question: input.question,
+		options: input.options,
+		correctAnswer: input.correctAnswer,
+		duration: input.duration
+	};
 }
