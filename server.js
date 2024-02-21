@@ -1,3 +1,4 @@
+const allQuestions = require('./questions.json');
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -127,6 +128,10 @@ app.get('/admin_addQuestions', (req, res) => {
 	res.sendFile(__dirname + '/public/admin_addQuestion.html');
 })
 
+app.get('/admin_removeQuestion', (req, res) => {
+	res.sendFile(__dirname + '/public/admin_removeQuestion.html');
+});
+
 // Päätepiste uuden kysymyksen lisäämiselle.
 app.post('/addQuestion', (req, res) => {
 	// Poimii kysymyksen objektin pyynnön rungosta
@@ -193,6 +198,40 @@ app.post('/addQuestion', (req, res) => {
 		})
 	})
 })
+
+app.delete('/removeQuestion/:questionName', (req, res) => {
+	const questionNameToRemove = req.params.questionName;
+	console.log('Question name to remove:', questionNameToRemove);
+
+	fs.readFile('questions.json', 'utf8', (err, data) => {
+		if (err) {
+			console.error('Error reading questions from file for removing a question');
+		    res.status(500).send('Internal Server Error');
+		} else {
+			console.log('Questions read from file successfully for removing a question', data);
+			
+			const questions = JSON.parse(data);
+			const updatedQuestions = questions.map(category => {
+				category.questions = category.questions.filter(question => question.question !== questionNameToRemove);
+				return category;
+			});
+
+			console.log('Questions after removal:', JSON.stringify(updatedQuestions, null, 2));
+			const updatedJSON = JSON.stringify(updatedQuestions, null, 2);
+
+			fs.writeFile('questions.json', updatedJSON, 'utf8', (err) => {
+                if (err) {
+                    console.error('Error writing questions to file after removing a question');
+                    res.status(500).send('Internal Server Error');
+                } else {
+                    console.log('Questions written to file successfully after removing a question');
+                    res.status(200).send('Question removed successfully');
+                }
+            });
+		}
+	});
+});
+
 
 app.get('/questions', (req, res) => {
 	fs.readFile('questions.json', 'utf8', (err, data) => {

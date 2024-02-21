@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Poista kysymys</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #007BFF;
+            /* Tämä on Bootstrapin pääsininen väri */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="mb3">
+                            <label for="questionCategory">Valitse poistettavan kysymyksen kategoria: </label>
+                            <select name="questionCategory" id="questionCategory" onchange="loadQuestionsByCategory()">
+                                <!-- Tähän tulevat olemassa olevat kysymyskategoriat -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="questionToRemove">Valitse poistettava kysymys: </label>
+                            <select name="questionToRemove" id="questionToRemove">
+                                <!-- Tähän tulevat olemassa olevat kysymykset -->
+                            </select>
+                        </div>
+
+                        <!-- Poista -painike -->
+                        <div>
+                            <button onclick="removeQuestion()">Poista</button>
+                        </div>
+
+                        <!-- Paluu Admin-sivulle painike -->
+                        <div>
+                            <button onclick="goBackToAdminPage()">Takaisin admin-sivulle</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function goBackToAdminPage() {
+            window.location.href = '/admin';
+        }
+
+        // Haetaan olemassa olevat kysymykset sivun ladattua:
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch("/questions")
+                .then(response => response.json())
+                .then(categories => {
+                    console.log('Fetched categories:', categories);
+
+                    const questionCategorySelect = document.getElementById('questionCategory');
+
+                    categories.forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category.name;
+                            option.innerText = category.name;
+                            questionCategorySelect.appendChild(option);
+                        });
+                        
+                        //Ladataan kysymykset valitusta kategoriasta
+                        loadQuestionsByCategory();
+                })
+                .catch(error => console.error('Virhe haettaessa kysymyksiä:', error));
+        });
+
+        //Funktio kysymysten lataamiseen valitun kategorian mukaan:
+        function loadQuestionsByCategory() {
+    const selectedCategory = document.getElementById('questionCategory').value;
+    console.log('Selected category:', selectedCategory);
+    const questionToRemoveSelect = document.getElementById('questionToRemove');
+
+    fetch("/questions")
+    .then(response => response.json())
+    .then(categories => {
+        console.log('Fetched categories again:', categories);
+        const selectedCategoryQuestions = categories.find(category => category.name === selectedCategory)?.questions;
+
+        // Clear existing options
+        questionToRemoveSelect.innerHTML = "";
+
+        // Fill the selected category with questions
+        selectedCategoryQuestions.forEach(question => {
+            const option = document.createElement('option');
+            option.value = question.question;
+            option.innerText = question.question;
+            questionToRemoveSelect.appendChild(option);
+        });
+    })
+    .catch(error => console.error('Error fetching questions for the selected category: ', error));
+}
+
+function removeQuestion() {
+    // Get details of the question to remove
+    const questionToRemoveSelect = document.getElementById('questionToRemove');
+    const questionToRemove = document.getElementById('questionToRemove').value;
+
+    fetch(`/removeQuestion/${encodeURIComponent(questionToRemove)}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => {
+        console.log(response);
+        if (response.ok) {
+            alert('Question removed successfully.');
+            window.location.href = '/admin';
+        } else {
+            response.text().then(errorMessage => {
+                console.error('Failed to remove question:', errorMessage)
+                alert('Failed to remove question. Check the console for error details.');
+            });
+        }
+    })
+    .catch(error => console.error('Error removing question:', error));
+}
+    </script> 
+</body>
+
+</html>
