@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Lisää uusi kysymys</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #007BFF;
+            /* Tämä on Bootstrapin pääsininen väri */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label for="questionCategory">Valitse kategoria: </label>
+                                <select name="questionCategory" id="questionCategory">
+                                    <!-- Tähän tulevat kysymysten kategoriat -->
+                                </select>
+                        </div>
+
+                        <div id="newCategory" class="mb-3" style="display: none">
+                            <label for="newCategoryInput" class="form-label">Uuden kategorian nimi:</label>
+                            <input type="text" class="form-control" id="newCategoryInput" placeholder="Kirjoita kategoria tähän">
+                        </div>
+                            
+                        <!-- Uusi kysymys -->
+                        <div class="mb-3">
+                            <label for="questionText" class="form-label">Uusi kysymys (pakollinen):</label>
+                            <input type="text" class="form-control" id="questionText" placeholder="Kirjoita kysymys tähän">
+                        </div>
+                        
+                        <div class="mb-2">Vastausvaihtoehdot (vähintään kaksi):</div>
+                        <div id="optionsContainer" class="mb-3">
+                            <!-- Tekstipalkit vastausvaihtoehdoille tulevat tähän -->
+                        </div>
+
+                        <!-- Oikea vastaus kysymykselle -->
+                        <div class="mb-3">
+                            <label for="correctAnswer" class="form-label">Oikea vastaus (pakollinen):</label>
+                            <input type="text" class="form-control" id="correctAnswer" placeholder="Kirjoita oikea vastaus tähän">
+                        </div>
+
+                        <!-- Aikaa vastata kysymykseen -->
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Aikaa vastata kysymykseen, sekunteina (pakollinen):</label>
+                            <input type="number" class="form-control" id="duration">
+                        </div>
+
+                        <!-- Lähetä -painike -->
+                        <div>
+                            <button onclick="sendNewQuestion()">Lähetä</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Lähettää uuden kysymyksen serverille käsiteltäväksi.
+        function sendNewQuestion() {
+
+            newCategoryInput = document.getElementById("newCategoryInput").value;
+            let category;
+            if (newCategoryInput) {
+                category = newCategoryInput;
+            } else {
+                category = document.getElementById("questionCategory").value;
+            }
+
+            // Hakee kysymyksen
+            const question = document.getElementById('questionText').value;
+
+            // Hakee oikean vastauksen
+            const correctAnswer = document.getElementById('correctAnswer').value;
+
+            // Hakee ajan, jonka admin määrittää vastaamiseen
+            const duration = document.getElementById('duration').value;
+
+            // Hakee annetut vastausvaihtoehdot
+            const optionsValues = document.querySelectorAll('#optionsContainer input[type="text"]');
+
+            // Lisää taulukkoon kaikki vaihtoehdot, jotka eivät ole tyhjiä
+            const options = Array.from(optionsValues).map(input => input.value.trim()).filter(value => value !== "");
+
+            // Luo objektin kysymyksen tiedoista
+            const newQuestion = {
+                category: category,
+                id: '',
+                question: question,
+                options: options,
+                correctAnswer: correctAnswer,
+                duration: duration
+            };
+
+            // Lähettää 'POST' requestin serverille uuden kysymyksen tietojen käsittelyä varten
+            fetch('/addQuestion', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(newQuestion)
+            })
+            .then(response => {
+                if (response.status === 400 || response.ok) {
+                    return response.json();
+                } else {
+                    alert("Odottamaton virhe tapahtui. Yritä uudelleen myöhemmin.");
+                }
+            })
+            .then(data => {
+                if (data && data.success) {
+                    alert(data.message);
+                    window.location.href = "/admin.html";
+                } else if (data && !data.success) {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            })
+        }
+
+        // Luo tekstikentät vastausvaihtoehdoille sivun ladattua
+        const optionsContainer = document.getElementById('optionsContainer');
+
+        for (let i = 0; i < 4; i++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control mb-3';
+            input.placeholder = `Lisää vaihtoehto ${i + 1}`;
+            optionsContainer.appendChild(input);
+            }
+
+        // Hakee kysymyssarjat sivun ladattua
+        fetch("/questions")
+            .then(response => response.json())
+            .then(categories => {
+                const questionCategory = document.getElementById('questionCategory');
+
+                categories.forEach(category => {
+                    const categoryOption = document.createElement('option');
+                    categoryOption.value = category.name;
+                    categoryOption.innerText = category.name;
+                    questionCategory.appendChild(categoryOption);
+                })
+
+            const newCategory = document.createElement('option');
+            newCategory.value = "Lisää uusi kategoria";
+            newCategory.innerText = "Lisää uusi kategoria";
+            questionCategory.appendChild(newCategory);
+            });
+        
+        const questionCategory = document.getElementById("questionCategory");
+        questionCategory.addEventListener('change', () => {
+            const category = questionCategory.value;
+            const newCategory = document.getElementById("newCategory");
+
+            if (category === "Lisää uusi kategoria") {
+                newCategory.style.display = 'block';
+            } else {
+                newCategory.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

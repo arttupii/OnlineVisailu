@@ -44,6 +44,16 @@
 							</div>
 						</div>
 
+						<!-- Kysymysten lisääminen, muokkaaminen ja poistaminen -->
+						<div class="mb-3">
+							<h3>Kysymysten toiminnat:</h3>
+							<div class="btn-group" role="group" aria-label="Question Actions">
+								<button onclick="redirectToQuestionAction('add')" class="btn btn-success">Lisää</button>
+								<button onclick="redirectToQuestionAction('edit')" class="btn btn-primary">Muokkaa</button>
+								<button onclick="redirectToQuestionAction('remove')" class="btn btn-danger">Poista</button>
+							</div>
+						</div>
+							
 						<!-- Meneillään oleva kysymys -->
 						<div data-type="pelinkyssari" style="display: none;">
 							<h3 class="text-center mt-4">Meneillään oleva kysymys:</h3>
@@ -66,7 +76,6 @@
 			</div>
 		</div>
 	</div>
-
 
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
@@ -100,6 +109,17 @@
 			const resultDiv = document.querySelector('[data-type="Lopputulokset"]');
 			resultDiv.innerHTML = '';
 			resultDiv.style.display = 'none';
+		}
+
+		// Ohjaa kysymyksiin liittyvää toimintaa vastaavaan sivuun.
+		function redirectToQuestionAction(action) {
+			if (action === 'add') {
+				window.location.href = "/admin_addQuestion.html";
+			} else if (action === 'edit') {
+				window.location.href = "/admin_editQuestion";
+			} else if (action === 'remove') {
+				window.location.href = "/admin_removeQuestion"
+			}
 		}
 
 		// Lataa kysymyssarjat heti, kun sivu latautuu
