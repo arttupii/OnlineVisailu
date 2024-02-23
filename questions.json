@@ -23,18 +23,6 @@
         ],
         "correctAnswer": "TRUE",
         "duration": 3
-      },
-      {
-        "id": 3,
-        "question": "Paljonko on 1 + 2?",
-        "options": [
-          "2",
-          "6",
-          "3",
-          "12"
-        ],
-        "correctAnswer": "3",
-        "duration": "5"
       }
     ]
   },
@@ -75,6 +63,18 @@
           "100 000 000"
         ],
         "correctAnswer": "100 000 000",
+        "duration": "5"
+      },
+      {
+        "id": 4,
+        "question": "Paljonko on 1 + 2 ?",
+        "options": [
+          "2",
+          "12",
+          "3",
+          "4"
+        ],
+        "correctAnswer": "3",
         "duration": "5"
       }
     ]
